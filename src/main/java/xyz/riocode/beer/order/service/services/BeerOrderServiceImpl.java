@@ -19,7 +19,7 @@ package xyz.riocode.beer.order.service.services;
 
 import xyz.riocode.beer.order.service.domain.BeerOrder;
 import xyz.riocode.beer.order.service.domain.Customer;
-import xyz.riocode.beer.order.service.domain.OrderStatusEnum;
+import xyz.riocode.beer.order.service.domain.BeerOrderStatus;
 import xyz.riocode.beer.order.service.repositories.BeerOrderRepository;
 import xyz.riocode.beer.order.service.repositories.CustomerRepository;
 import xyz.riocode.beer.order.service.web.mappers.BeerOrderMapper;
@@ -84,7 +84,7 @@ public class BeerOrderServiceImpl implements BeerOrderService {
             BeerOrder beerOrder = beerOrderMapper.dtoToBeerOrder(beerOrderDto);
             beerOrder.setId(null); //should not be set by outside client
             beerOrder.setCustomer(customerOptional.get());
-            beerOrder.setOrderStatus(OrderStatusEnum.NEW);
+            beerOrder.setOrderStatus(BeerOrderStatus.NEW);
 
             beerOrder.getBeerOrderLines().forEach(line -> line.setBeerOrder(beerOrder));
 
@@ -109,7 +109,7 @@ public class BeerOrderServiceImpl implements BeerOrderService {
     @Override
     public void pickupOrder(UUID customerId, UUID orderId) {
         BeerOrder beerOrder = getOrder(customerId, orderId);
-        beerOrder.setOrderStatus(OrderStatusEnum.PICKED_UP);
+        beerOrder.setOrderStatus(BeerOrderStatus.PICKED_UP);
 
         beerOrderRepository.save(beerOrder);
     }
