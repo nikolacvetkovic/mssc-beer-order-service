@@ -28,6 +28,6 @@ public class ValidateBeerOrderAction implements Action<BeerOrderStatus, BeerOrde
     public void execute(StateContext<BeerOrderStatus, BeerOrderEvent> stateContext) {
         String beerOrderId = (String) stateContext.getMessageHeader(BeerOrderManagerImpl.BEER_ORDER_ID_HEADER_PROPERTY);
         BeerOrder beerOrder = beerOrderRepository.findById(UUID.fromString(beerOrderId)).orElseThrow(RuntimeException::new);
-        jmsTemplate.convertAndSend(JmsConfig.VALIDATE_BEER_ORDER_QUEUE, beerOrderMapper.beerOrderToDto(beerOrder));
+        jmsTemplate.convertAndSend(JmsConfig.VALIDATE_BEER_ORDER_REQ_QUEUE, beerOrderMapper.beerOrderToDto(beerOrder));
     }
 }
