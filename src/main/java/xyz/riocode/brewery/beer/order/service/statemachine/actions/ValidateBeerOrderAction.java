@@ -13,6 +13,7 @@ import xyz.riocode.brewery.beer.order.service.domain.BeerOrderStatus;
 import xyz.riocode.brewery.beer.order.service.repositories.BeerOrderRepository;
 import xyz.riocode.brewery.beer.order.service.services.BeerOrderManagerImpl;
 import xyz.riocode.brewery.beer.order.service.web.mappers.BeerOrderMapper;
+import xyz.riocode.brewery.common.events.ValidateBeerOrderEvent;
 
 import java.util.UUID;
 
@@ -28,6 +29,9 @@ public class ValidateBeerOrderAction implements Action<BeerOrderStatus, BeerOrde
     public void execute(StateContext<BeerOrderStatus, BeerOrderEvent> stateContext) {
         String beerOrderId = (String) stateContext.getMessageHeader(BeerOrderManagerImpl.BEER_ORDER_ID_HEADER_PROPERTY);
         BeerOrder beerOrder = beerOrderRepository.findById(UUID.fromString(beerOrderId)).orElseThrow(RuntimeException::new);
-        jmsTemplate.convertAndSend(JmsConfig.VALIDATE_BEER_ORDER_REQ_QUEUE, beerOrderMapper.beerOrderToDto(beerOrder));
+        ValidateBeerOrderEvent validateBeerOrderEvent = ValidateBeerOrderEvent.builder()
+                .beerOrderDto(beerOrderMapper.beerOrderToDto(beerOrder))
+                .build();
+        jmsTemplate.convertAndSend(JmsConfig.VALIDATE_BEER_ORDER_REQ_QUEUE, validateBeerOrderEvent);
     }
 }
