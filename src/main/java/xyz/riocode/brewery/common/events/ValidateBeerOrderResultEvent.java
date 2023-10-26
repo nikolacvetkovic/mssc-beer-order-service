@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class ValidateOrderResultEvent {
+public class ValidateBeerOrderResultEvent {
     private UUID orderId;
     private Boolean isValid;
 }
