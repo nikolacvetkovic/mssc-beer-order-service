@@ -1,6 +1,8 @@
 package xyz.riocode.brewery.beer.order.service.statemachine;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.statemachine.action.Action;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
@@ -10,9 +12,12 @@ import xyz.riocode.brewery.beer.order.service.domain.BeerOrderStatus;
 
 import java.util.EnumSet;
 
+@RequiredArgsConstructor
 @EnableStateMachineFactory
 @Configuration
 public class BeerOrderStateMachineConfig extends StateMachineConfigurerAdapter<BeerOrderStatus, BeerOrderEvent> {
+
+    private final Action<BeerOrderStatus, BeerOrderEvent> validateBeerOrderAction;
 
     @Override
     public void configure(StateMachineStateConfigurer<BeerOrderStatus, BeerOrderEvent> states) throws Exception {
@@ -31,8 +36,9 @@ public class BeerOrderStateMachineConfig extends StateMachineConfigurerAdapter<B
         transitions
                 .withExternal()
                     .source(BeerOrderStatus.NEW)
-                    .target(BeerOrderStatus.NEW)
+                    .target(BeerOrderStatus.VALIDATION_PENDING)
                     .event(BeerOrderEvent.VALIDATE_ORDER)
+                    .action(validateBeerOrderAction)
                 .and()
                 .withExternal()
                     .source(BeerOrderStatus.NEW)
