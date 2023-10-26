@@ -6,6 +6,6 @@ import xyz.riocode.brewery.common.model.BeerOrderDto;
 
 @Data
 @Builder
-public class ValidateBeerOrderEvent {
+public class AllocateBeerOrderEvent {
     private BeerOrderDto beerOrderDto;
 }
