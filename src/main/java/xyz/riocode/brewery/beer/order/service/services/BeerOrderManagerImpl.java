@@ -13,6 +13,7 @@ import xyz.riocode.brewery.beer.order.service.domain.BeerOrderEvent;
 import xyz.riocode.brewery.beer.order.service.domain.BeerOrderStatus;
 import xyz.riocode.brewery.beer.order.service.repositories.BeerOrderRepository;
 import xyz.riocode.brewery.beer.order.service.statemachine.interceptors.BeerOrderStateChangeInterceptor;
+import xyz.riocode.brewery.common.model.BeerOrderDto;
 
 import java.util.UUID;
 
@@ -42,6 +43,38 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         } else {
             sendBeerOrderEvent(beerOrder, BeerOrderEvent.VALIDATION_FAILED);
         }
+    }
+
+    @Override
+    public void processAllocationSuccessful(BeerOrderDto beerOrderDto) {
+        BeerOrder beerOrder = beerOrderRepository.findById(beerOrderDto.getId()).orElseThrow(RuntimeException::new);
+        sendBeerOrderEvent(beerOrder, BeerOrderEvent.ALLOCATION_SUCCESS);
+        updateAllocatedQuantity(beerOrderDto, beerOrder);
+    }
+
+    @Override
+    public void processAllocationFailed(BeerOrderDto beerOrderDto) {
+        BeerOrder beerOrder = beerOrderRepository.findById(beerOrderDto.getId()).orElseThrow(RuntimeException::new);
+        sendBeerOrderEvent(beerOrder, BeerOrderEvent.ALLOCATION_FAILED);
+    }
+
+    @Override
+    public void processAllocationInventoryPending(BeerOrderDto beerOrderDto) {
+        BeerOrder beerOrder = beerOrderRepository.findById(beerOrderDto.getId()).orElseThrow(RuntimeException::new);
+        sendBeerOrderEvent(beerOrder, BeerOrderEvent.ALLOCATION_NO_INVENTORY);
+        updateAllocatedQuantity(beerOrderDto, beerOrder);
+    }
+
+    private void updateAllocatedQuantity(BeerOrderDto beerOrderDto, BeerOrder beerOrder) {
+        BeerOrder retrievedOrder = beerOrderRepository.findById(beerOrderDto.getId()).orElseThrow(RuntimeException::new);
+        retrievedOrder.getBeerOrderLines().forEach(beerOrderLine -> {
+            beerOrderDto.getBeerOrderLines().forEach(beerOrderLineDto -> {
+                if (beerOrderLine.getBeerId().equals(beerOrderLineDto.getBeerId())) {
+                    beerOrderLine.setQuantityAllocated(beerOrderLineDto.getAllocatedQuantity());
+                }
+            });
+        });
+        beerOrderRepository.saveAndFlush(retrievedOrder);
     }
 
     private StateMachine<BeerOrderStatus, BeerOrderEvent> build(BeerOrder beerOrder) {
