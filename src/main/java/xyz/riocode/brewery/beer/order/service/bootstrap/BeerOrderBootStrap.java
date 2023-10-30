@@ -1,10 +1,10 @@
 package xyz.riocode.brewery.beer.order.service.bootstrap;
 
-import xyz.riocode.brewery.beer.order.service.domain.Customer;
-import xyz.riocode.brewery.beer.order.service.repositories.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import xyz.riocode.brewery.beer.order.service.domain.Customer;
+import xyz.riocode.brewery.beer.order.service.repositories.CustomerRepository;
 
 import java.util.UUID;
 

@@ -1,15 +1,15 @@
 package xyz.riocode.brewery.beer.order.service.services;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import xyz.riocode.brewery.beer.order.service.bootstrap.BeerOrderBootStrap;
 import xyz.riocode.brewery.beer.order.service.domain.Customer;
 import xyz.riocode.brewery.beer.order.service.repositories.BeerOrderRepository;
 import xyz.riocode.brewery.beer.order.service.repositories.CustomerRepository;
 import xyz.riocode.brewery.common.model.BeerOrderDto;
 import xyz.riocode.brewery.common.model.BeerOrderLineDto;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;

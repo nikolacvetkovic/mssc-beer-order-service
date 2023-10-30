@@ -17,10 +17,10 @@
 
 package xyz.riocode.brewery.beer.order.service.web.mappers;
 
+import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import xyz.riocode.brewery.beer.order.service.domain.BeerOrder;
 import xyz.riocode.brewery.common.model.BeerOrderDto;
-import org.mapstruct.Mapper;
 
 @Mapper(uses = {DateMapper.class, BeerOrderLineMapper.class})
 public interface BeerOrderMapper {

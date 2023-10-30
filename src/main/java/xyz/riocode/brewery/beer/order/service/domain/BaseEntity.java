@@ -16,12 +16,14 @@
  */
 package xyz.riocode.brewery.beer.order.service.domain;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import jakarta.persistence.*;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;

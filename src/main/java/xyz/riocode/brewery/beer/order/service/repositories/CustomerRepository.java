@@ -16,8 +16,8 @@
  */
 package xyz.riocode.brewery.beer.order.service.repositories;
 
-import xyz.riocode.brewery.beer.order.service.domain.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
+import xyz.riocode.brewery.beer.order.service.domain.Customer;
 
 import java.util.List;
 import java.util.UUID;

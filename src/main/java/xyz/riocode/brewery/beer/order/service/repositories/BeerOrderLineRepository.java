@@ -17,8 +17,8 @@
 
 package xyz.riocode.brewery.beer.order.service.repositories;
 
-import xyz.riocode.brewery.beer.order.service.domain.BeerOrderLine;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import xyz.riocode.brewery.beer.order.service.domain.BeerOrderLine;
 
 import java.util.UUID;
 

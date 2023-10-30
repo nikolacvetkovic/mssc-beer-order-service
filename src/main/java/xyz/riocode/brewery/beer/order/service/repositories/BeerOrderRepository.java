@@ -17,15 +17,15 @@
 package xyz.riocode.brewery.beer.order.service.repositories;
 
 
-import xyz.riocode.brewery.beer.order.service.domain.BeerOrder;
-import xyz.riocode.brewery.beer.order.service.domain.BeerOrderStatus;
-import xyz.riocode.brewery.beer.order.service.domain.Customer;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import xyz.riocode.brewery.beer.order.service.domain.BeerOrder;
+import xyz.riocode.brewery.beer.order.service.domain.BeerOrderStatus;
+import xyz.riocode.brewery.beer.order.service.domain.Customer;
 
-import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.UUID;
 

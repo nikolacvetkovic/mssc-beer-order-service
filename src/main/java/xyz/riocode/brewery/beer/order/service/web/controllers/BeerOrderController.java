@@ -17,12 +17,12 @@
 
 package xyz.riocode.brewery.beer.order.service.web.controllers;
 
-import xyz.riocode.brewery.beer.order.service.services.BeerOrderService;
-import xyz.riocode.brewery.common.model.BeerOrderDto;
-import xyz.riocode.brewery.common.model.BeerOrderPagedList;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import xyz.riocode.brewery.beer.order.service.services.BeerOrderService;
+import xyz.riocode.brewery.common.model.BeerOrderDto;
+import xyz.riocode.brewery.common.model.BeerOrderPagedList;
 
 import java.util.UUID;
 
