@@ -11,8 +11,8 @@ import java.util.UUID;
 @Service
 public class BeerServiceImpl implements BeerService {
 
-    private final String BEER_UPC_PATH = "/api/v1/beer/upc/{upc}";
-    private final String BEER_ID_PATH = "/api/v1/beer/{id}";
+    public final static String BEER_UPC_PATH = "/api/v1/beer/upc/";
+    public final static String BEER_ID_PATH = "/api/v1/beer/";
 
     @Value("${xyz.brewery.beer-service-host}")
     private String beerServiceHost;
@@ -25,15 +25,13 @@ public class BeerServiceImpl implements BeerService {
 
     @Override
     public Optional<BeerDto> getById(UUID beerId) {
-        return Optional.ofNullable(restTemplate.getForObject(beerServiceHost + BEER_ID_PATH,
-                                            BeerDto.class,
-                                            beerId));
+        return Optional.ofNullable(restTemplate.getForObject(beerServiceHost + BEER_ID_PATH + beerId,
+                                            BeerDto.class));
     }
 
     @Override
     public Optional<BeerDto> getByUpc(String upc) {
-        return Optional.ofNullable(restTemplate.getForObject(beerServiceHost + BEER_UPC_PATH,
-                BeerDto.class,
-                upc));
+        return Optional.ofNullable(restTemplate.getForObject(beerServiceHost + BEER_UPC_PATH + upc,
+                BeerDto.class));
     }
 }
