@@ -7,6 +7,7 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import xyz.riocode.brewery.beer.order.service.domain.BeerOrder;
 import xyz.riocode.brewery.beer.order.service.domain.BeerOrderEvent;
@@ -27,6 +28,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     private final StateMachineFactory<BeerOrderStatus, BeerOrderEvent> stateMachineFactory;
     private final BeerOrderStateChangeInterceptor beerOrderStateChangeInterceptor;
 
+    @Transactional
     @Override
     public BeerOrder newOrder(BeerOrder beerOrder) {
         beerOrder.setOrderStatus(BeerOrderStatus.NEW);
@@ -35,11 +37,14 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         return savedBeerOrder;
     }
 
+    @Transactional
     @Override
     public void processValidationResult(UUID orderId, Boolean isValid) {
         BeerOrder beerOrder = beerOrderRepository.findById(orderId).orElseThrow(RuntimeException::new);
         if (isValid) {
             sendBeerOrderEvent(beerOrder, BeerOrderEvent.VALIDATION_PASSED);
+            BeerOrder validatedOrder = beerOrderRepository.findById(orderId).get();
+            sendBeerOrderEvent(validatedOrder, BeerOrderEvent.ALLOCATE_ORDER);
         } else {
             sendBeerOrderEvent(beerOrder, BeerOrderEvent.VALIDATION_FAILED);
         }
@@ -96,7 +101,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     private void sendBeerOrderEvent(BeerOrder beerOrder, BeerOrderEvent event) {
         StateMachine<BeerOrderStatus, BeerOrderEvent> sm = build(beerOrder);
         Message<BeerOrderEvent> msg = MessageBuilder.withPayload(event)
-                                                    .setHeader(BEER_ORDER_ID_HEADER_PROPERTY, beerOrder.getId())
+                                                    .setHeader(BEER_ORDER_ID_HEADER_PROPERTY, beerOrder.getId().toString())
                                                     .build();
         sm.sendEvent(Mono.just(msg)).subscribe();
     }

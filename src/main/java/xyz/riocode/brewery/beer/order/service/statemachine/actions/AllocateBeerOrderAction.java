@@ -34,9 +34,5 @@ public class AllocateBeerOrderAction implements Action<BeerOrderStatus, BeerOrde
         jmsTemplate.convertAndSend(JmsConfig.ALLOCATE_BEER_ORDER_REQ_QUEUE, AllocateBeerOrderEvent.builder()
                 .beerOrderDto(beerOrderMapper.beerOrderToDto(beerOrder))
                 .build());
-        Message<BeerOrderEvent> msg = MessageBuilder.withPayload(BeerOrderEvent.ALLOCATE_ORDER)
-                        .setHeader(BeerOrderManagerImpl.BEER_ORDER_ID_HEADER_PROPERTY, beerOrderId)
-                        .build();
-        stateContext.getStateMachine().sendEvent(Mono.just(msg)).subscribe();
     }
 }
