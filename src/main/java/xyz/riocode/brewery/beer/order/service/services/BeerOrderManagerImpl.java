@@ -61,7 +61,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         Optional<BeerOrder> beerOrderOptional = beerOrderRepository.findById(beerOrderDto.getId());
         beerOrderOptional.ifPresentOrElse(beerOrder -> {
             sendBeerOrderEvent(beerOrder, BeerOrderEvent.ALLOCATION_SUCCESS);
-            updateAllocatedQuantity(beerOrderDto, beerOrder);
+            updateAllocatedQuantity(beerOrderDto);
         }, () -> log.error("Order nof found. Order id: " + beerOrderDto.getId()));
     }
 
@@ -79,24 +79,23 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         Optional<BeerOrder> beerOrderOptional = beerOrderRepository.findById(beerOrderDto.getId());
         beerOrderOptional.ifPresentOrElse(beerOrder -> {
             sendBeerOrderEvent(beerOrder, BeerOrderEvent.ALLOCATION_NO_INVENTORY);
-            updateAllocatedQuantity(beerOrderDto, beerOrder);
+            updateAllocatedQuantity(beerOrderDto);
         }, () -> log.error("Order nof found. Order id: " + beerOrderDto.getId()));
 
     }
 
-    private void updateAllocatedQuantity(BeerOrderDto beerOrderDto, BeerOrder beerOrder) {
-        Optional<BeerOrder> retrievedOrderOptional = beerOrderRepository.findById(beerOrderDto.getId());
-        retrievedOrderOptional.ifPresentOrElse(retrievedOrder -> {
-            retrievedOrder.getBeerOrderLines().forEach(beerOrderLine -> {
+    private void updateAllocatedQuantity(BeerOrderDto beerOrderDto) {
+        Optional<BeerOrder> allocatedOrderOptional = beerOrderRepository.findById(beerOrderDto.getId());
+        allocatedOrderOptional.ifPresentOrElse(allocatedOrder -> {
+            allocatedOrder.getBeerOrderLines().forEach(beerOrderLine -> {
                 beerOrderDto.getBeerOrderLines().forEach(beerOrderLineDto -> {
                     if (beerOrderLine.getBeerId().equals(beerOrderLineDto.getBeerId())) {
                         beerOrderLine.setQuantityAllocated(beerOrderLineDto.getAllocatedQuantity());
                     }
                 });
             });
-            beerOrderRepository.saveAndFlush(retrievedOrder);
+            beerOrderRepository.saveAndFlush(allocatedOrder);
         }, () -> log.error("Order nof found. Order id: " + beerOrderDto.getId()));
-
     }
 
     private StateMachine<BeerOrderStatus, BeerOrderEvent> build(BeerOrder beerOrder) {
