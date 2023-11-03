@@ -7,6 +7,7 @@ import org.springframework.statemachine.state.State;
 import org.springframework.statemachine.support.StateMachineInterceptorAdapter;
 import org.springframework.statemachine.transition.Transition;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import xyz.riocode.brewery.beer.order.service.domain.BeerOrder;
 import xyz.riocode.brewery.beer.order.service.domain.BeerOrderEvent;
 import xyz.riocode.brewery.beer.order.service.domain.BeerOrderStatus;
@@ -22,6 +23,7 @@ public class BeerOrderStateChangeInterceptor extends StateMachineInterceptorAdap
 
     private final BeerOrderRepository beerOrderRepository;
 
+    @Transactional
     @Override
     public void preStateChange(State<BeerOrderStatus, BeerOrderEvent> state,
                                Message<BeerOrderEvent> message, Transition<BeerOrderStatus, BeerOrderEvent> transition,
