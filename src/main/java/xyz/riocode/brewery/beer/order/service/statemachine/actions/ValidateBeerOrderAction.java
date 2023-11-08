@@ -37,6 +37,6 @@ public class ValidateBeerOrderAction implements Action<BeerOrderStatus, BeerOrde
                     .beerOrderDto(beerOrderMapper.beerOrderToDto(beerOrder))
                     .build();
             jmsTemplate.convertAndSend(JmsConfig.VALIDATE_BEER_ORDER_REQ_QUEUE, validateBeerOrderEvent);
-        }, () -> log.error("Order nof found. Order id: " + beerOrderId));
+        }, () -> log.error("Order not found. Order id: " + beerOrderId));
     }
 }

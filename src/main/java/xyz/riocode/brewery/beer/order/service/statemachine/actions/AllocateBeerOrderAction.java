@@ -35,6 +35,6 @@ public class AllocateBeerOrderAction implements Action<BeerOrderStatus, BeerOrde
             jmsTemplate.convertAndSend(JmsConfig.ALLOCATE_BEER_ORDER_REQ_QUEUE, AllocateBeerOrderEvent.builder()
                     .beerOrderDto(beerOrderMapper.beerOrderToDto(beerOrder))
                     .build());
-        }, () -> log.error("Order nof found. Order id: " + beerOrderId));
+        }, () -> log.error("Order not found. Order id: " + beerOrderId));
     }
 }
