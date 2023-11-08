@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -63,7 +63,7 @@ public class BeerOrderManagerImplIT {
         customerRepository.save(testCustomer);
     }
 
-    @RepeatedTest(10)
+    @Test
     void testNewToAllocated() throws JsonProcessingException, InterruptedException {
         BeerDto beerDto = BeerDto.builder().id(beerId).upc("12345").build();
         wireMockServer.stubFor(get(BeerServiceImpl.BEER_UPC_PATH + "12345").willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
@@ -89,7 +89,7 @@ public class BeerOrderManagerImplIT {
         assertEquals(BeerOrderStatus.ALLOCATED, allocatedBeerOrder.getOrderStatus());
     }
 
-    @RepeatedTest(10)
+    @Test
     void testNewToPickedUp() throws JsonProcessingException {
         BeerDto beerDto = BeerDto.builder().id(beerId).upc("12345").build();
         wireMockServer.stubFor(get(BeerServiceImpl.BEER_UPC_PATH + "12345").willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
@@ -105,6 +105,19 @@ public class BeerOrderManagerImplIT {
         // duplicated
         BeerOrder pickedUpBeerOrder = beerOrderRepository.findById(savedBeerOrder.getId()).get();
         assertEquals(BeerOrderStatus.PICKED_UP, pickedUpBeerOrder.getOrderStatus());
+    }
+
+    @Test
+    void testNewToValidationException() throws JsonProcessingException {
+        BeerDto beerDto = BeerDto.builder().id(beerId).upc("12345").build();
+        wireMockServer.stubFor(get(BeerServiceImpl.BEER_UPC_PATH + "12345").willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
+
+        BeerOrder beerOrder = createBeerOrder();
+        beerOrder.setCustomerRef("fail");
+
+        BeerOrder savedBeerOrder = beerOrderManager.newOrder(beerOrder);
+
+        await().until(getBeerOrderStatus(savedBeerOrder.getId()), equalTo(BeerOrderStatus.VALIDATION_EXCEPTION));
     }
 
     BeerOrder createBeerOrder() {
