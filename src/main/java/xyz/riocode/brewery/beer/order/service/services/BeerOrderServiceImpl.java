@@ -19,14 +19,12 @@ package xyz.riocode.brewery.beer.order.service.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.riocode.brewery.beer.order.service.domain.BeerOrder;
-import xyz.riocode.brewery.beer.order.service.domain.BeerOrderStatus;
 import xyz.riocode.brewery.beer.order.service.domain.Customer;
 import xyz.riocode.brewery.beer.order.service.repositories.BeerOrderRepository;
 import xyz.riocode.brewery.beer.order.service.repositories.CustomerRepository;

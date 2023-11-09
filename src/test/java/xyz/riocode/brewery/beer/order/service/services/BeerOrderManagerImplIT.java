@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.jms.core.JmsTemplate;
+import xyz.riocode.brewery.beer.order.service.config.JmsConfig;
 import xyz.riocode.brewery.beer.order.service.domain.BeerOrder;
 import xyz.riocode.brewery.beer.order.service.domain.BeerOrderLine;
 import xyz.riocode.brewery.beer.order.service.domain.BeerOrderStatus;
@@ -17,6 +19,7 @@ import xyz.riocode.brewery.beer.order.service.repositories.BeerOrderRepository;
 import xyz.riocode.brewery.beer.order.service.repositories.CustomerRepository;
 import xyz.riocode.brewery.beer.order.service.services.beer.BeerServiceImpl;
 import xyz.riocode.brewery.beer.order.service.services.beer.model.BeerDto;
+import xyz.riocode.brewery.common.events.BeerOrderAllocationFailedEvent;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -26,9 +29,11 @@ import java.util.concurrent.Callable;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 public class BeerOrderManagerImplIT {
@@ -41,6 +46,8 @@ public class BeerOrderManagerImplIT {
     CustomerRepository customerRepository;
     @Autowired
     ObjectMapper objectMapper;
+    @Autowired
+    JmsTemplate jmsTemplate;
     @Autowired
     WireMockServer wireMockServer;
     Customer testCustomer;
@@ -131,6 +138,11 @@ public class BeerOrderManagerImplIT {
         BeerOrder savedBeerOrder = beerOrderManager.newOrder(beerOrder);
 
         await().until(getBeerOrderStatus(savedBeerOrder.getId()), equalTo(BeerOrderStatus.ALLOCATION_EXCEPTION));
+
+        BeerOrderAllocationFailedEvent event = (BeerOrderAllocationFailedEvent) jmsTemplate.receiveAndConvert(JmsConfig.BEER_ORDER_ALLOCATION_FAILED_QUEUE);
+
+        assertNotNull(event);
+        assertThat(event.getOrderId()).isEqualTo(savedBeerOrder.getId());
     }
 
     @Test
