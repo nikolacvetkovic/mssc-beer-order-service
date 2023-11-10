@@ -1,5 +1,6 @@
 package xyz.riocode.brewery.beer.order.service.services;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -30,6 +31,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     private final BeerOrderRepository beerOrderRepository;
     private final StateMachineFactory<BeerOrderStatus, BeerOrderEvent> stateMachineFactory;
     private final BeerOrderStateChangeInterceptor beerOrderStateChangeInterceptor;
+    private final EntityManager entityManager;
 
     @Transactional
     @Override
@@ -43,8 +45,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     @Transactional
     @Override
     public void processValidationResult(UUID orderId, Boolean isValid) {
-        Optional<BeerOrder> beerOrderOptional = beerOrderRepository.findById(orderId);
-        beerOrderOptional.ifPresentOrElse(beerOrder -> {
+        beerOrderRepository.findById(orderId).ifPresentOrElse(beerOrder -> {
             if (isValid) {
                 sendBeerOrderEvent(beerOrder, BeerOrderEvent.VALIDATION_PASSED);
                 BeerOrder validatedOrder = beerOrderRepository.findById(orderId).get();
@@ -58,8 +59,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
 
     @Override
     public void processAllocationSuccessful(BeerOrderDto beerOrderDto) {
-        Optional<BeerOrder> beerOrderOptional = beerOrderRepository.findById(beerOrderDto.getId());
-        beerOrderOptional.ifPresentOrElse(beerOrder -> {
+        beerOrderRepository.findById(beerOrderDto.getId()).ifPresentOrElse(beerOrder -> {
             sendBeerOrderEvent(beerOrder, BeerOrderEvent.ALLOCATION_SUCCESS);
             updateAllocatedQuantity(beerOrderDto);
         }, () -> log.error("processAllocationSuccessful -> Order not found. Order id: " + beerOrderDto.getId()));
@@ -67,28 +67,31 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
 
     @Override
     public void processAllocationFailed(BeerOrderDto beerOrderDto) {
-        Optional<BeerOrder> beerOrderOptional = beerOrderRepository.findById(beerOrderDto.getId());
-        beerOrderOptional.ifPresentOrElse(beerOrder -> {
+        beerOrderRepository.findById(beerOrderDto.getId()).ifPresentOrElse(beerOrder -> {
             sendBeerOrderEvent(beerOrder, BeerOrderEvent.ALLOCATION_FAILED);
         }, () -> log.error("processAllocationFailed -> Order not found. Order id: " + beerOrderDto.getId()));
     }
 
     @Override
-    public void beerOrderPickedUp(UUID beerId) {
-        Optional<BeerOrder> beerOrderOptional = beerOrderRepository.findById(beerId);
-        beerOrderOptional.ifPresentOrElse(beerOrder -> {
+    public void beerOrderPickedUp(UUID beerOrderId) {
+        beerOrderRepository.findById(beerOrderId).ifPresentOrElse(beerOrder -> {
             sendBeerOrderEvent(beerOrder, BeerOrderEvent.BEER_ORDER_PICKED_UP);
-        }, () -> log.error("beerOrderPickedUp -> Order not found. Order id: " + beerId));
+        }, () -> log.error("beerOrderPickedUp -> Order not found. Order id: " + beerOrderId));
     }
 
     @Override
     public void processAllocationInventoryPending(BeerOrderDto beerOrderDto) {
-        Optional<BeerOrder> beerOrderOptional = beerOrderRepository.findById(beerOrderDto.getId());
-        beerOrderOptional.ifPresentOrElse(beerOrder -> {
+        beerOrderRepository.findById(beerOrderDto.getId()).ifPresentOrElse(beerOrder -> {
             sendBeerOrderEvent(beerOrder, BeerOrderEvent.ALLOCATION_NO_INVENTORY);
             updateAllocatedQuantity(beerOrderDto);
         }, () -> log.error("processAllocationInventoryPending -> Order not found. Order id: " + beerOrderDto.getId()));
+    }
 
+    @Override
+    public void cancelOrder(UUID beerOrderId) {
+        beerOrderRepository.findById(beerOrderId).ifPresentOrElse(beerOrder -> {
+            sendBeerOrderEvent(beerOrder, BeerOrderEvent.CANCEL_ORDER);
+        }, () -> log.error("cancelOrder -> Order not found. Order id: " + beerOrderId));
     }
 
     private void updateAllocatedQuantity(BeerOrderDto beerOrderDto) {

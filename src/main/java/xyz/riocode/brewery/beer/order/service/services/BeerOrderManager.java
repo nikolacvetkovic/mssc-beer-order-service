@@ -11,5 +11,6 @@ public interface BeerOrderManager {
     void processAllocationSuccessful(BeerOrderDto beerOrderDto);
     void processAllocationFailed(BeerOrderDto beerOrderDto);
     void processAllocationInventoryPending(BeerOrderDto beerOrderDto);
-    void beerOrderPickedUp(UUID beerId);
+    void beerOrderPickedUp(UUID beerOrderId);
+    void cancelOrder(UUID beerOrderId);
 }
