@@ -8,9 +8,6 @@ import xyz.riocode.brewery.beer.order.service.repositories.CustomerRepository;
 
 import java.util.UUID;
 
-/**
- * Created by jt on 2019-06-06.
- */
 @RequiredArgsConstructor
 @Component
 public class BeerOrderBootStrap implements CommandLineRunner {
@@ -27,7 +24,7 @@ public class BeerOrderBootStrap implements CommandLineRunner {
     }
 
     private void loadCustomerData() {
-        if (customerRepository.count() == 0) {
+        if (customerRepository.findAllByCustomerNameLike(BeerOrderBootStrap.TASTING_ROOM).isEmpty()) {
             customerRepository.save(Customer.builder()
                     .customerName(TASTING_ROOM)
                     .apiKey(UUID.randomUUID())
