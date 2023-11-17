@@ -20,6 +20,8 @@ import xyz.riocode.brewery.common.model.BeerOrderDto;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -48,6 +50,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         beerOrderRepository.findById(orderId).ifPresentOrElse(beerOrder -> {
             if (isValid) {
                 sendBeerOrderEvent(beerOrder, BeerOrderEvent.VALIDATION_PASSED);
+                awaitForStatus(orderId, BeerOrderStatus.VALIDATED);
                 BeerOrder validatedOrder = beerOrderRepository.findById(orderId).get();
                 sendBeerOrderEvent(validatedOrder, BeerOrderEvent.ALLOCATE_ORDER);
             } else {
@@ -61,6 +64,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     public void processAllocationSuccessful(BeerOrderDto beerOrderDto) {
         beerOrderRepository.findById(beerOrderDto.getId()).ifPresentOrElse(beerOrder -> {
             sendBeerOrderEvent(beerOrder, BeerOrderEvent.ALLOCATION_SUCCESS);
+            awaitForStatus(beerOrder.getId(), BeerOrderStatus.ALLOCATED);
             updateAllocatedQuantity(beerOrderDto);
         }, () -> log.error("processAllocationSuccessful -> Order not found. Order id: " + beerOrderDto.getId()));
     }
@@ -83,6 +87,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     public void processAllocationInventoryPending(BeerOrderDto beerOrderDto) {
         beerOrderRepository.findById(beerOrderDto.getId()).ifPresentOrElse(beerOrder -> {
             sendBeerOrderEvent(beerOrder, BeerOrderEvent.ALLOCATION_NO_INVENTORY);
+            awaitForStatus(beerOrder.getId(), BeerOrderStatus.PENDING_INVENTORY);
             updateAllocatedQuantity(beerOrderDto);
         }, () -> log.error("processAllocationInventoryPending -> Order not found. Order id: " + beerOrderDto.getId()));
     }
@@ -99,7 +104,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         allocatedOrderOptional.ifPresentOrElse(allocatedOrder -> {
             allocatedOrder.getBeerOrderLines().forEach(beerOrderLine -> {
                 beerOrderDto.getBeerOrderLines().forEach(beerOrderLineDto -> {
-                    if (beerOrderLine.getBeerId().equals(beerOrderLineDto.getBeerId())) {
+                    if (beerOrderLine.getId().equals(beerOrderLineDto.getId())) {
                         beerOrderLine.setQuantityAllocated(beerOrderLineDto.getAllocatedQuantity());
                     }
                 });
@@ -130,5 +135,38 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
                                                     .setHeader(BEER_ORDER_ID_HEADER_PROPERTY, beerOrder.getId().toString())
                                                     .build();
         sm.sendEvent(Mono.just(msg)).subscribe();
+    }
+
+    private void awaitForStatus(UUID beerOrderId, BeerOrderStatus statusEnum) {
+
+        AtomicBoolean found = new AtomicBoolean(false);
+        AtomicInteger loopCount = new AtomicInteger(0);
+
+        while (!found.get()) {
+            if (loopCount.incrementAndGet() > 10) {
+                found.set(true);
+                log.debug("Loop Retries exceeded");
+            }
+
+            beerOrderRepository.findById(beerOrderId).ifPresentOrElse(beerOrder -> {
+                if (beerOrder.getOrderStatus().equals(statusEnum)) {
+                    found.set(true);
+                    log.debug("Order Found");
+                } else {
+                    log.debug("Order Status Not Equal. Expected: " + statusEnum.name() + " Found: " + beerOrder.getOrderStatus().name());
+                }
+            }, () -> {
+                log.debug("Order Id Not Found");
+            });
+
+            if (!found.get()) {
+                try {
+                    log.debug("Sleeping for retry");
+                    Thread.sleep(100);
+                } catch (Exception e) {
+                    // do nothing
+                }
+            }
+        }
     }
 }
